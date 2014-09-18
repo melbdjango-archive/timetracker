@@ -1,5 +1,6 @@
 from django.db import models
-from datetime import datetime, timedelta
+from django.utils.timezone import now
+from datetime import timedelta
 
 class Client(models.Model):
     name = models.CharField(max_length=100)
@@ -25,6 +26,10 @@ class Entry(models.Model):
     class Meta:
         verbose_name_plural = 'Entries'
 
+    def clean(self):
+        # validate that there are no overlapping time entries
+        pass
+
     @property
     def active(self):
         return not self.end_time
@@ -32,12 +37,12 @@ class Entry(models.Model):
     @active.setter
     def active(self, value):
         if not value and not self.end_time:
-            self.end_time = datetime.now()
+            self.end_time = now()
             self.save()
 
     @property
     def duration(self):
-        return (end_time - start_time).minutes
+        return (self.end_time - self.start_time).seconds / 60
 
     @duration.setter
     def duration(self, value):
